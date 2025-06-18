@@ -1,0 +1,987 @@
+/**
+ * 投稿関連スタイル - 直近投稿・投稿カード・アクション・編集機能
+ * 編集機能追加版
+ */
+
+/* 統計情報セクション（直近投稿タブ用・統一デザイン） */
+.statistics-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.statistics-section h3 {
+    margin: 0 0 15px 0;
+    font-size: 1.2rem;
+    opacity: 0.9;
+}
+
+.stats-display {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
+}
+
+.stat-item {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 600;
+    backdrop-filter: blur(10px);
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.stat-item:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+/* 直近投稿予定セクション */
+.upcoming-posts-section {
+    background: #f8f9fa;
+    border-bottom: 3px solid #1da1f2;
+    padding: 20px;
+}
+
+.upcoming-posts-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.upcoming-posts-header h2 {
+    color: #333;
+    font-size: 1.5rem;
+}
+
+.refresh-btn {
+    background: #17a2b8;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.refresh-btn:hover {
+    background: #138496;
+    transform: translateY(-1px);
+}
+
+.upcoming-posts-container {
+    display: grid;
+    gap: 8px;
+    max-height: 70vh;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+/* スクロールバーのスタイリング */
+.upcoming-posts-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.upcoming-posts-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.upcoming-posts-container::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.upcoming-posts-container::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* 投稿カード */
+.upcoming-post-card {
+    background: white;
+    border-radius: 8px;
+    padding: 12px 16px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    border-left: 3px solid #1da1f2;
+    transition: all 0.3s ease;
+    margin-bottom: 8px;
+}
+
+.upcoming-post-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.upcoming-post-card.past-due {
+    border-left-color: #dc3545;
+    background: #fff5f5;
+}
+
+.upcoming-post-card.error {
+    border-left-color: #ffc107;
+    background: #fffbf0;
+}
+
+/* 編集モード時の投稿カード */
+.upcoming-post-card.editing {
+    border-left-color: #28a745;
+    background: #f8fff9;
+    box-shadow: 0 4px 16px rgba(40, 167, 69, 0.2);
+    transform: scale(1.01);
+    z-index: 10;
+    position: relative;
+}
+
+.post-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.post-schedule {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.schedule-time {
+    font-weight: 600;
+    color: #333;
+    font-size: 0.95rem;
+}
+
+.schedule-status {
+    font-size: 0.8rem;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+.schedule-status.upcoming {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.schedule-status.past-due {
+    background: #ffebee;
+    color: #d32f2f;
+}
+
+.schedule-status.error {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+/* 投稿アクション */
+.post-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.action-btn {
+    padding: 4px 8px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.copy-btn {
+    background: #28a745;
+    color: white;
+}
+
+.copy-btn:hover {
+    background: #218838;
+}
+
+.copy-btn.copied {
+    background: #6c757d;
+}
+
+.copy-btn.processing {
+    background: #ffc107;
+    color: #333;
+}
+
+.posted-btn {
+    background: #17a2b8;
+    color: white;
+}
+
+.posted-btn:hover {
+    background: #138496;
+}
+
+.postpone-btn {
+    background: #ffc107;
+    color: #333;
+}
+
+.postpone-btn:hover {
+    background: #e0a800;
+}
+
+/* ==========================================================================
+   投稿削除機能用スタイル（v1.10追加）
+   ========================================================================== */
+
+/* 削除ボタン */
+.delete-btn {
+    background: #dc3545;
+    color: white;
+}
+
+.delete-btn:hover {
+    background: #c82333;
+    transform: translateY(-1px);
+}
+
+/* 削除ボタンの処理中状態 */
+.delete-btn.processing {
+    background: #ffc107;
+    color: #333;
+    cursor: not-allowed;
+}
+
+/* 削除確認ダイアログの追加調整 */
+#deleteConfirmDialog .btn {
+    transition: all 0.3s ease;
+}
+
+#deleteConfirmDialog .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* モバイル対応 */
+@media (max-width: 768px) {
+    .delete-btn {
+        width: 100%;
+        margin-top: 5px;
+    }
+}
+
+/* 編集ボタン */
+.edit-btn {
+    background: #28a745;
+    color: white;
+}
+
+.edit-btn:hover {
+    background: #218838;
+}
+
+.edit-btn.editing {
+    background: #6c757d;
+}
+
+/* 投稿コンテンツ */
+.post-content {
+    background: #f8f9fa;
+    padding: 10px 12px;
+    border-radius: 6px;
+    line-height: 1.4;
+    margin-bottom: 8px;
+    white-space: pre-wrap;
+    border: 1px solid #e1e8ed;
+    max-height: 80px;
+    overflow-y: auto;
+    font-size: 0.9rem;
+}
+
+.post-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+    color: #666;
+}
+
+.pattern-info {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* ===== 編集機能用スタイル ===== */
+
+/* 編集モード切り替え */
+.edit-mode-toggle {
+    background: #e9ecef;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 15px;
+    border: 1px solid #dee2e6;
+}
+
+.edit-mode-toggle h4 {
+    margin: 0 0 10px 0;
+    color: #495057;
+    font-size: 0.9rem;
+}
+
+.mode-options {
+    display: flex;
+    gap: 20px;
+}
+
+.mode-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.mode-option:hover {
+    color: #28a745;
+}
+
+.mode-option input[type="radio"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #28a745;
+}
+
+.mode-option label {
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+/* 編集エリア */
+.edit-area {
+    background: #ffffff;
+    border: 2px solid #28a745;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 15px;
+}
+
+.edit-textarea {
+    width: 100%;
+    min-height: 100px;
+    max-height: 200px;
+    padding: 12px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    resize: vertical;
+    font-family: inherit;
+}
+
+.edit-textarea:focus {
+    outline: none;
+    border-color: #28a745;
+    box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.25);
+}
+
+/* 文字数カウンター */
+.char-counter {
+    text-align: right;
+    margin-top: 8px;
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+.char-counter.warning {
+    color: #ffc107;
+}
+
+.char-counter.error {
+    color: #dc3545;
+    font-weight: 600;
+}
+
+/* スケジュール編集エリア */
+.schedule-editor {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 12px;
+    margin-top: 15px;
+}
+
+.schedule-editor h5 {
+    margin: 0 0 12px 0;
+    color: #495057;
+    font-size: 0.9rem;
+}
+
+.schedule-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr 2fr;
+    gap: 12px;
+    align-items: end;
+}
+
+.schedule-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.schedule-field label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #495057;
+}
+
+.schedule-field input,
+.schedule-field select {
+    padding: 6px 8px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+
+.schedule-field input:focus,
+.schedule-field select:focus {
+    outline: none;
+    border-color: #28a745;
+}
+
+/* 編集操作ボタン */
+.edit-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding-top: 12px;
+    border-top: 1px solid #dee2e6;
+}
+
+.edit-controls .btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 5px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.edit-controls .btn-preview {
+    background: #17a2b8;
+    color: white;
+}
+
+.edit-controls .btn-preview:hover {
+    background: #138496;
+}
+
+.edit-controls .btn-copy {
+    background: #6f42c1;
+    color: white;
+}
+
+.edit-controls .btn-copy:hover {
+    background: #5a2d91;
+}
+
+.edit-controls .btn-save {
+    background: #28a745;
+    color: white;
+}
+
+.edit-controls .btn-save:hover {
+    background: #218838;
+}
+
+.edit-controls .btn-cancel {
+    background: #6c757d;
+    color: white;
+}
+
+.edit-controls .btn-cancel:hover {
+    background: #545b62;
+}
+
+/* プレビューエリア */
+.preview-area {
+    background: #e7f3ff;
+    border: 1px solid #b3d7ff;
+    border-radius: 6px;
+    padding: 12px;
+    margin-top: 12px;
+    display: none;
+}
+
+.preview-area.show {
+    display: block;
+    animation: slideDown 0.3s ease;
+}
+
+.preview-area h6 {
+    margin: 0 0 8px 0;
+    color: #0066cc;
+    font-size: 0.85rem;
+}
+
+.preview-content {
+    background: white;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #cce7ff;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    white-space: pre-wrap;
+}
+
+/* アニメーション */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.edit-area {
+    animation: slideDown 0.3s ease;
+}
+
+/* モード情報 */
+.assistant-mode-info {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    border: 2px solid #2196f3;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.assistant-mode-info.auto-mode {
+    background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+    border-color: #4caf50;
+}
+
+.assistant-mode-info h4 {
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+}
+
+.last-updated {
+    font-size: 0.8rem;
+    color: #666;
+    text-align: center;
+    margin-top: 10px;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+    .stats-display {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    
+    .stat-item {
+        font-size: 0.8rem;
+        padding: 10px;
+    }
+    
+    .post-actions {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .action-btn {
+        width: 100%;
+        padding: 8px 12px;
+    }
+    
+    .schedule-fields {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    
+    .edit-controls {
+        flex-direction: column;
+        gap: 6px;
+    }
+    
+    .edit-controls .btn {
+        width: 100%;
+    }
+    
+    .mode-options {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+ 
+/* ==========================================================================
+   v1.11新機能: クイック投稿追加スタイル
+   ========================================================================== */
+
+/* クイック投稿追加セクション */
+.quick-add-section {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.quick-add-section:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+}
+
+.quick-add-section h3 {
+    margin: 0 0 15px 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+/* フォーム全体 */
+.quick-add-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.quick-add-form .form-group {
+    margin-bottom: 0;
+}
+
+.quick-add-form label {
+    display: block;
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* テキストエリア */
+.quick-add-form textarea {
+    width: 100%;
+    min-height: 80px;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    resize: vertical;
+    font-size: 0.9rem;
+    font-family: inherit;
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.quick-add-form textarea:focus {
+    outline: none;
+    background: white;
+    border-color: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
+}
+
+.quick-add-form textarea::placeholder {
+    color: #999;
+}
+
+/* 文字数カウンター */
+.quick-add-form .char-counter {
+    text-align: right;
+    font-size: 0.8rem;
+    margin-top: 5px;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 500;
+}
+
+.quick-add-form .char-counter.warning {
+    color: #ffc107;
+    font-weight: 600;
+}
+
+.quick-add-form .char-counter.error {
+    color: #dc3545;
+    font-weight: 700;
+}
+
+/* スケジュール操作エリア */
+.quick-schedule-controls {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr 1fr 1fr;
+    gap: 15px;
+    align-items: end;
+}
+
+.schedule-input {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.schedule-input input,
+.schedule-input select {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.schedule-input input:focus,
+.schedule-input select:focus {
+    outline: none;
+    background: white;
+    border-color: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
+}
+
+/* 追加ボタン */
+.schedule-input .btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    padding: 10px 16px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.schedule-input .btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-1px);
+}
+
+.schedule-input .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ヘルプテキスト */
+.quick-add-help {
+    text-align: center;
+    margin-top: 5px;
+}
+
+.quick-add-help small {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.quick-add-help small:hover {
+    color: rgba(255, 255, 255, 1);
+}
+
+/* アニメーション効果 */
+.quick-add-section.adding {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.quick-add-section.success {
+    background: linear-gradient(135deg, #20c997 0%, #28a745 100%);
+    animation: successPulse 0.6s ease;
+}
+
+@keyframes successPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
+/* エラー表示 */
+.quick-add-error {
+    background: rgba(220, 53, 69, 0.9);
+    color: white;
+    padding: 10px;
+    border-radius: 6px;
+    margin-top: 10px;
+    font-size: 0.9rem;
+    text-align: center;
+    animation: slideDown 0.3s ease;
+    transition: all 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ==========================================================================
+   v1.12新機能: 動的変数ドロップダウンスタイル
+   ========================================================================== */
+
+/* 動的変数ヘルパー */
+.dynamic-vars-helper {
+    margin-top: 10px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dynamic-vars-helper label {
+    display: block;
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.dynamic-vars-helper select {
+    width: 100%;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.dynamic-vars-helper select:focus {
+    outline: none;
+    background: white;
+    border-color: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
+}
+
+.dynamic-vars-helper select:hover {
+    background: white;
+}
+
+/* optgroup スタイル */
+.dynamic-vars-helper optgroup {
+    font-weight: 600;
+    color: #333;
+    font-size: 0.85rem;
+}
+
+.dynamic-vars-helper option {
+    padding: 6px 8px;
+    font-size: 0.85rem;
+    color: #333;
+}
+
+.dynamic-vars-helper option:hover {
+    background: #f0f8ff;
+}
+
+/* ヒントテキスト */
+.dynamic-vars-tip {
+    display: block;
+    margin-top: 6px;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.7);
+    font-style: italic;
+}
+
+/* 編集モード用の動的変数ヘルパー */
+.edit-area .dynamic-vars-helper {
+    background: rgba(40, 167, 69, 0.1);
+    border: 1px solid rgba(40, 167, 69, 0.2);
+    margin-top: 10px;
+}
+
+.edit-area .dynamic-vars-helper label {
+    color: #28a745;
+}
+
+.edit-area .dynamic-vars-helper select {
+    background: rgba(255, 255, 255, 0.98);
+}
+
+.edit-area .dynamic-vars-helper select:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.2);
+}
+
+.edit-area .dynamic-vars-tip {
+    color: rgba(40, 167, 69, 0.8);
+}
+
+/* コピー成功時のアニメーション */
+.dynamic-vars-helper.copied {
+    animation: copySuccess 0.6s ease;
+}
+
+@keyframes copySuccess {
+    0% { 
+        background: rgba(255, 255, 255, 0.1);
+        transform: scale(1);
+    }
+    50% { 
+        background: rgba(40, 167, 69, 0.3);
+        transform: scale(1.02);
+    }
+    100% { 
+        background: rgba(255, 255, 255, 0.1);
+        transform: scale(1);
+    }
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+    .dynamic-vars-helper {
+        padding: 10px;
+    }
+    
+    .dynamic-vars-helper select {
+        font-size: 0.9rem;
+        padding: 10px;
+    }
+    
+    .dynamic-vars-helper label {
+        font-size: 0.9rem;
+    }
+    
+    .dynamic-vars-tip {
+        font-size: 0.8rem;
+    }
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+    .quick-schedule-controls {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .schedule-input {
+        width: 100%;
+    }
+    
+    .quick-add-section {
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .schedule-input .btn {
+        width: 100%;
+        padding: 12px;
+    }
+}

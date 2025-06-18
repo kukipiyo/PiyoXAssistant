@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X投稿補助ツール</title>
+    
+    <!-- CSS読み込み -->
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/header.css">
+    <link rel="stylesheet" href="css/posts.css">
+    <link rel="stylesheet" href="css/management.css">
+    <link rel="stylesheet" href="css/tabs.css">
+</head>
+<body>
+    <div class="container">
+        <!-- ヘッダー -->
+        <div class="header">
+            <div>
+                <h1>🐦 X投稿補助ツール</h1>
+                <p>投稿内容を確認してコピー＆手動投稿、または自動投稿を選択できます</p>
+            </div>
+            <div class="mode-toggle">
+                <span>補助モード</span>
+                <div class="toggle-switch" id="modeToggle" onclick="toggleMode()">
+                    <div class="toggle-slider"></div>
+                </div>
+                <span>自動モード</span>
+            </div>
+        </div>
+        
+        <!-- タブナビゲーション -->
+        <div class="tab-navigation">
+            <button class="tab-button active" onclick="switchTab('upcoming')">
+                📅 直近投稿予定
+            </button>
+            <button class="tab-button" onclick="switchTab('management')">
+                ⚙️ 管理・設定
+            </button>
+        </div>
+        
+        <!-- タブ1: 直近投稿予定 -->
+        <div id="upcoming-tab" class="tab-content active">
+            <div class="upcoming-posts-tab">
+                <!-- 統計情報セクション（読み取り専用） -->
+                <div class="statistics-section">
+                    <h3>📊 投稿統計</h3>
+                    <div class="stats-display">
+                        <div class="stat-item">📊 総計: <span id="upcomingTotalPosts">0</span>件</div>
+                        <div class="stat-item">⏰ 予約中: <span id="upcomingScheduledPosts">0</span>件</div>
+                        <div class="stat-item">✅ 投稿済み: <span id="upcomingPostedCount">0</span>件</div>
+                        <div class="stat-item">⏳ 待機中: <span id="upcomingPendingPosts">0</span>件</div>
+                    </div>
+                </div>
+
+                <!-- v1.11新機能: クイック投稿追加セクション -->
+                <div class="quick-add-section">
+                    <h3>✏️ クイック投稿追加</h3>
+                    <div class="quick-add-form">
+                        <div class="form-group">
+                            <label for="quickAddContent">投稿内容:</label>
+                            <textarea id="quickAddContent" placeholder="投稿内容を入力...（280文字以内）" maxlength="280" rows="3"></textarea>
+                            <div class="char-counter" id="quickAddCharCounter">0/280</div>                        
+                            
+                            <!-- v1.12新機能: 動的変数ドロップダウン -->
+                            <div class="dynamic-vars-helper">
+                                <label for="quickAddVarsDropdown">📝 動的変数:</label>
+                                <select id="quickAddVarsDropdown" onchange="copyDynamicVariable(this, 'quickAddContent')">
+                                    <option value="">変数を選択してコピー</option>
+                                    <optgroup label="📅 日時">
+                                        <option value="{NOW}">{NOW} - 現在日時</option>
+                                        <option value="{DATE}">{DATE} - 今日の日付</option>
+                                        <option value="{TIME}">{TIME} - 現在時刻</option>
+                                        <option value="{WEEKDAY}">{WEEKDAY} - 曜日</option>
+                                        <option value="{YEAR}">{YEAR} - 年</option>
+                                        <option value="{MONTH}">{MONTH} - 月</option>
+                                        <option value="{DAY}">{DAY} - 日</option>
+                                    </optgroup>
+                                    <optgroup label="🌤️ 天気（APIキー設定時）">
+                                        <option value="{WEATHER}">{WEATHER} - 天気</option>
+                                        <option value="{TEMP}">{TEMP} - 現在気温</option>
+                                        <option value="{TEMP_MAX}">{TEMP_MAX} - 最高気温</option>
+                                        <option value="{HUMIDITY}">{HUMIDITY} - 湿度</option>
+                                        <option value="{WIND_SPEED}">{WIND_SPEED} - 風速</option>
+                                        <option value="{PRESSURE}">{PRESSURE} - 気圧</option>
+                                        <option value="{CITY}">{CITY} - 都市名</option>
+                                    </optgroup>
+                                    <optgroup label="📈 金融">
+                                        <option value="{NIKKEI}">{NIKKEI} - 日経平均</option>
+                                        <option value="{TOPIX}">{TOPIX} - TOPIX</option>
+                                        <option value="{UpdateTime}">{UpdateTime} - 株価更新時刻</option>
+                                        <option value="{DOW}">{DOW} - NYダウ</option>
+                                        <option value="{NASDAQ}">{NASDAQ} - NASDAQ</option>
+                                        <option value="{SP500}">{SP500} - S&P500</option>
+                                        <option value="{USDJPY}">{USDJPY} - ドル円</option>
+                                        <option value="{EURJPY}">{EURJPY} - ユーロ円</option>
+                                    </optgroup>
+                                </select>
+                                <small class="dynamic-vars-tip">💡 選択すると自動でクリップボードにコピーされます</small>
+                            </div>
+                        </div>
+                        <div class="quick-schedule-controls">
+                            <div class="schedule-input">
+                                <label for="quickAddTime">投稿時刻:</label>
+                                <input type="time" id="quickAddTime" value="09:00">
+                            </div>
+                            
+                            <div class="schedule-input">
+                                <label for="quickAddPattern">投稿パターン:</label>
+                                <select id="quickAddPattern">
+                                    <option value="毎日">毎日</option>           <!-- 🆕 追加 -->
+                                    <option value="平日">平日（月〜金）</option>
+                                    <option value="土日">土日</option>
+                                    <option value="月">毎週月曜日</option>
+                                    <option value="火">毎週火曜日</option>
+                                    <option value="水">毎週水曜日</option>
+                                    <option value="木">毎週木曜日</option>
+                                    <option value="金">毎週金曜日</option>
+                                    <option value="土">毎週土曜日</option>
+                                    <option value="日">毎週日曜日</option>
+                                </select>
+                            </div>
+                            
+                            <div class="schedule-input">
+                                <label for="quickAddRandom">ランダム分:</label>
+                                <input type="number" id="quickAddRandom" min="0" max="60" value="0" placeholder="0-60">
+                            </div>
+                            
+                            <div class="schedule-input">
+                                <button class="btn btn-primary" onclick="addQuickPost()" id="quickAddBtn">
+                                    📝 投稿追加
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="quick-add-help">
+                            <small>💡 ヒント: 動的変数（{NOW}, {WEATHER}, {NIKKEI}など）も使用できます</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Yahoo Finance 手動取得セクション -->
+                <div class="yahoo-finance-section" style="margin-bottom: 20px;">
+                    <div style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); color: white; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h4 style="margin: 0 0 5px 0; font-size: 1.1rem;">📈 株価データ更新</h4>
+                                <p style="margin: 0; font-size: 0.85rem; opacity: 0.9;">
+                                    動的変数 {NIKKEI} {TOPIX} の最新値を取得
+                                </p>
+                            </div>
+                            <button class="btn" onclick="fetchYahooStocksForDynamicVars()" 
+                                    style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 8px 16px; font-size: 0.9rem; font-weight: 600;">
+                                📈 最新株価取得
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 株価データ状況表示 -->
+                    <div id="dynamicVarStockStatus" style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 12px;">
+                        <div style="font-size: 0.9rem; color: #666; text-align: center;">
+                            💡 ボタンを押すと投稿内容の株価変数が最新データに更新されます
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 直近投稿予定セクション -->
+                <div class="upcoming-posts-section">
+                    <div class="upcoming-posts-header">
+                        <h2>📅 直近投稿予定</h2>
+                        <button class="refresh-btn" onclick="refreshUpcomingPosts()">🔄 更新</button>
+                    </div>
+                    
+                    <div class="assistant-mode-info" id="modeInfo">
+                        <h4>🤖 投稿補助モード</h4>
+                        <p>投稿内容を確認してコピーボタンでクリップボードにコピー → Xサイトで手動投稿してください。<br>
+                        投稿完了後は「投稿済み」ボタンを押すと次回スケジュールが自動設定されます。<br>
+                        <strong>📝 NEW!</strong> 「コピー」ボタンで編集モードが開き、投稿内容をその場で編集できます！</p>
+                    </div>
+                    
+                    <div class="upcoming-posts-container" id="upcomingPostsContainer">
+                        <div style="text-align: center; color: #666; padding: 40px;">
+                            🔄 読み込み中...
+                        </div>
+                    </div>
+                    
+                    <div class="last-updated" id="lastUpdated"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- タブ2: 管理・設定 -->
+        <div id="management-tab" class="tab-content">
+            <div class="management-grid">
+                
+                <!-- 統計情報 -->
+                <div class="management-section">
+                    <h3>📊 投稿統計</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card total">
+                            <div class="stat-value" id="totalPosts">0</div>
+                            <div class="stat-label">総投稿数</div>
+                        </div>
+                        <div class="stat-card scheduled">
+                            <div class="stat-value" id="scheduledPosts">0</div>
+                            <div class="stat-label">予約中</div>
+                        </div>
+                        <div class="stat-card posted">
+                            <div class="stat-value" id="postedCount">0</div>
+                            <div class="stat-label">投稿済み</div>
+                        </div>
+                        <div class="stat-card pending">
+                            <div class="stat-value" id="pendingPosts">0</div>
+                            <div class="stat-label">待機中</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 投稿データ管理セクション -->
+                <div class="management-section">
+                    <h3>📊 投稿データ管理</h3>
+                    <div class="data-management-controls">
+                        <div class="data-actions">
+                            <button class="btn btn-success" onclick="savePostsData()">💾 保存</button>
+                            <button class="btn btn-danger" onclick="clearPostsData()">🗑️ クリア</button>
+                        </div>
+                        <div class="data-status" id="dataManagementStatus">
+                            投稿データ管理機能
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- ファイル読み込み -->
+                <div class="management-section">
+                    <h3>📁 Excelファイル読み込み</h3>
+                    
+                    <div class="template-info">
+                        <h4>📋 Excelファイルの形式（日付・曜日指定対応）</h4>
+                        <ul>
+                            <li><strong>A列:</strong> 投稿内容（テキスト）</li>
+                            <li><strong>B列:</strong> 基準時刻（例：08:00, 12:30）</li>
+                            <li><strong>C列:</strong> ランダム分数（例：5なら±5分、0なら正確な時刻）</li>
+                            <li><strong>D列:</strong> 日付・曜日パターン</li>
+                            <li><strong>E列:</strong> ステータス（"未投稿", "投稿済み", "予約中"）</li>
+                        </ul>
+                        
+                        <h4 style="margin-top: 15px; color: #1da1f2;">📅 D列の指定方法</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px;">
+                            <div>
+                                <strong>具体的な日付:</strong>
+                                <ul style="margin-top: 5px; font-size: 0.9rem;">
+                                    <li>20250615 → 2025年6月15日に実行</li>
+                                    <li>20241225 → 2024年12月25日に実行</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <strong>繰り返しパターン:</strong>
+                                <ul style="margin-top: 5px; font-size: 0.9rem;">
+                                    <li>毎日 → 毎日実行</li>              <!-- 🆕 追加 -->
+                                    <li>平日 → 月〜金曜日</li>
+                                    <li>土日 → 土曜日と日曜日</li>
+                                    <li>月, 火, 水, 木, 金, 土, 日 → 各曜日</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <h4 style="margin-top: 15px; color: #17a2b8;">🔄 動的変数（投稿時に自動置換）</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top: 10px;">
+                            <div>
+                                <strong>日時:</strong>
+                                <ul style="margin-top: 5px; font-size: 0.9rem;">
+                                    <li>{NOW} → 現在日時</li>
+                                    <li>{DATE} → 今日の日付</li>
+                                    <li>{TIME} → 現在時刻</li>
+                                    <li>{WEEKDAY} → 曜日</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <strong>天気（要APIキー）:</strong>
+                                <ul style="margin-top: 5px; font-size: 0.9rem;">
+                                    <li>{WEATHER} → 天気</li>
+                                    <li>{TEMP} → 現在気温</li>
+                                    <li>{TEMP_MAX} → 最高気温</li>
+                                    <li>{HUMIDITY} → 湿度</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <strong>金融（Yahoo Finance + Twelve Data）:</strong>
+                                <ul style="margin-top: 5px; font-size: 0.9rem;">
+                                    <li>{NIKKEI} → 日経平均</li>
+                                    <li>{TOPIX} → TOPIX</li>
+                                    <li>{UpdateTime} → 株価更新時刻</li>
+                                    <li>{DOW} → NYダウ</li>
+                                    <li>{NASDAQ} → NASDAQ</li>
+                                    <li>{SP500} → S&P500</li>
+                                    <li>{USDJPY} → ドル円</li>
+                                    <li>{EURJPY} → ユーロ円</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 15px; padding: 10px; background: #e8f5e8; border-radius: 5px; border-left: 4px solid #28a745;">
+                            <h4 style="margin: 0 0 8px 0; color: #28a745;">✨ 編集機能について</h4>
+                            <p style="margin: 0; font-size: 0.9rem;">
+                                直近投稿タブで「📋 コピー」ボタンを押すと編集モードが開きます。<br>
+                                <strong>評価後編集:</strong> 動的変数が展開された最終テキストを編集<br>
+                                <strong>テンプレート編集:</strong> 動的変数を含む元テンプレート・スケジュール設定を編集
+                            </p>
+                        </div>
+                        
+                        <p style="margin-top: 10px; font-size: 0.9rem; color: #666;">
+                            例：「おはようございます！今日は{WEEKDAY}曜日、{WEATHER}で{TEMP}です。日経平均: {NIKKEI}（{UpdateTime}時点）」<br>
+                            → 「おはようございます！今日は月曜日、晴れで25°Cです。日経平均: 38,750円（6/11 14:30時点）」
+                        </p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Excelファイル:</label>
+                        <input type="file" id="excelFile" accept=".xlsx,.xls">
+                    </div>
+                    <button class="btn btn-primary" onclick="uploadFile()">ファイル読み込み</button>
+                    <div id="fileStatus" class="status-indicator status-warning">📄 ファイルを選択してください</div>
+                </div>
+                
+                <!-- 投稿制御 -->
+                <div class="management-section">
+                    <h3>🚀 投稿制御</h3>
+                    <button class="btn btn-primary" id="startBtn" onclick="startPosting()">自動投稿開始</button>
+                    <button class="btn btn-danger" id="stopBtn" onclick="stopPosting()">投稿停止</button>
+                    <div id="controlStatus" class="status-indicator status-warning">⏹️ 停止中</div>
+                </div>
+                
+                <!-- API設定 -->
+                <div class="management-section">
+                    <h3>🔐 API設定</h3>
+                    <p style="color: #666; margin-bottom: 15px;">投稿補助モードでは動的変数のフル処理時のみAPIを使用します</p>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                        <div>
+                            <h4>🌤️ 天気API（オプション）</h4>
+                            <input type="password" id="weatherApiKey" placeholder="OpenWeatherMap API Key" 
+                                   style="width: 100%; padding: 8px; margin-bottom: 8px; border: 1px solid #ddd; border-radius: 5px;">
+                            <button class="btn" onclick="setWeatherApiKey()" style="background: #17a2b8; color: white;">設定</button>
+                        </div>
+                        
+                        <div>
+                            <h4>📈 金融API（オプション）</h4>
+                            <input type="password" id="twelveDataApiKey" placeholder="Twelve Data API Key" 
+                                   style="width: 100%; padding: 8px; margin-bottom: 8px; border: 1px solid #ddd; border-radius: 5px;">
+                            <button class="btn" onclick="setTwelveDataApiKey()" style="background: #28a745; color: white;">設定</button>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4>🐦 Twitter API（自動投稿用）</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                            <input type="text" id="apiKey" placeholder="API Key" 
+                                   style="padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+                            <input type="password" id="apiKeySecret" placeholder="API Key Secret" 
+                                   style="padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+                            <input type="text" id="accessToken" placeholder="Access Token" 
+                                   style="padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+                            <input type="password" id="accessTokenSecret" placeholder="Access Token Secret" 
+                                   style="padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+                        </div>
+                        <button class="btn btn-primary" onclick="setTwitterApiKey()">Twitter API設定</button>
+                    </div>
+                    
+                    <div id="apiStatus" class="status-indicator status-warning">⚠️ 投稿補助モードでは必須ではありません</div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    
+    <!-- JavaScript読み込み（順序重要） -->
+    <script src="js/core.js"></script>
+    <script src="js/mode.js"></script>
+    <script src="js/posts.js"></script>
+    <script src="js/posts-edit.js"></script>
+    <script src="js/management.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/tabs.js"></script>
+</body>
+</html>
